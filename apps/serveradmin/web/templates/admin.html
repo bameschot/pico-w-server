@@ -1,0 +1,164 @@
+<!doctype html>
+<html>
+<title>Pico W</title>
+
+<head>
+    <link rel="stylesheet" href="/css/simple-css-min.css"/>
+    <link rel="stylesheet" href="/css/pico-server-overrides.css"/>
+    <script src="/server-admin/js/serveradmin.js"></script>
+</head>
+
+<body>
+
+<div id="menu-bar-div" style="overflow: hidden;">
+    <div style="float: left" id="app-descriptor-div">pico-w running on: {{ip}}</div>
+    <div style="float: left; color: crimson; display: none" id="is-secure-banner-div">&emsp; NOT SECURE</div>
+    <div style="float: right">
+        <button id="logout-user-button" style="display: none" onclick="clearUser()">Clear User</button>
+    </div>
+</div>
+
+<div id="clear-user-id-div" style="display: none"></div>
+
+<div id="landing-div" style="display: block">
+    <div class="panel">
+
+        <h1>Welcome</h1>
+
+        <p>Hey! Welcome to {{server-name}}</p>
+        Powered by pico-w
+    </div>
+    <div style="padding-top: 2%"></div>
+    <div class="panel">
+        <h2>Server Status</h2>
+        Uptime:
+        <div id="uptime-div">0</div>
+        </br>
+        Free Memory:
+        <div id="free-memory-div">0</div>
+    </div>
+    <div style="padding-top: 2%"></div>
+    <div class="panel">
+
+        <h2>Server Config</h2>
+
+        Preferred Connection Mode:</br>
+        <select id="preferredConnectionMode-select">
+            <option value="AP">Access Point (AP)</option>
+            <option selected="selected" value="STA">Wlan (STA)</option>
+        </select></br>
+        Protocol:</br>
+        <select id="protocol-select">
+            <option value="https">https</option>
+            <option selected="selected" value="http">http</option>
+        </select></br>
+        STA SSID:</br><input id="staSSID-input" type="text"></br>
+        STA Password:</br><input id="staPassword-input" type="text"></br>
+        AP SSID:</br><input id="apSSID-input" type="text"></br>
+        AP Password:</br><input id="apPassword-input" type="text"></br>
+        AP Ip:</br><input id="apIp-input" type="text"></br>
+
+        <button id="submit-server-config-button" onclick="postServerConfig()">Store server configuration</button>
+    </div>
+    <div style="padding-top: 2%"></div>
+
+    <div class="panel">
+        <h2>Server Reset</h2>
+        <button id="reset-server-button" onclick="postServerReset()">Reset server</button>
+    </div>
+
+</div>
+
+
+</body>
+
+<script>
+    if (!IS_SECURE_MODE)
+        document.getElementById("is-secure-banner-div").style.display = "block"
+    
+    let protocol = "{{protocol}}"
+    //let protocol = "http"
+
+    let serverAddress = "{{ip}}"
+    //let serverAddress = "192.168.1.182"//"{{ip}}" //"192.168.1.181"//
+    
+    let serverConfigUri = protocol+"://" + serverAddress + "/server-admin/config"
+    let serverStatusUri = protocol+"://" + serverAddress + "/server-admin/status"
+    let serverResetUri =  protocol+"://" + serverAddress + "/server-admin/reset"
+
+    setInterval(getServerStatus, 10000)
+    getServerStatus()
+    getServerConfig()
+
+    async function getServerStatus() {
+        console.log("Fetching server status from " + serverStatusUri)
+        await fetch(serverStatusUri, {
+            method: "GET",
+            signal: AbortSignal.timeout(1000)
+        })
+            .then(response => {
+                return response.json()
+            })
+            .then(json => {
+                let parsedJson = json
+
+                document.getElementById("free-memory-div").innerHTML = parsedJson.freeMemoryBytes + " bytes"
+                document.getElementById("uptime-div").innerHTML = (Math.round(Number(parsedJson.serverUptime) / 60)) + " minutes"
+            })
+    }
+
+    async function getServerConfig() {
+        console.log("Fetching server config from " + serverConfigUri)
+        await fetch(serverConfigUri, {
+            method: "GET",
+            signal: AbortSignal.timeout(1000)
+        })
+            .then(response => {
+                return response.json()
+            })
+            .then(json => {
+                let parsedJson = json
+
+                document.getElementById("preferredConnectionMode-select").selected = parsedJson.preferredConnectionMode
+                document.getElementById("protocol-select").selected = parsedJson.protocol
+                document.getElementById("staSSID-input").value = parsedJson.staSSID
+                document.getElementById("staPassword-input").value = parsedJson.staPassword
+                document.getElementById("apSSID-input").value = parsedJson.apSSID
+                document.getElementById("apPassword-input").value = parsedJson.apPassword
+                document.getElementById("apIp-input").value = parsedJson.apIp
+            })
+    }
+
+    async function postServerConfig() {
+        console.log("Storing new server config")
+        await fetch(serverConfigUri, {
+            method: "POST",
+            body: JSON.stringify({
+                "preferredConnectionMode": document.getElementById("preferredConnectionMode-select").value,
+                "protocol": document.getElementById("protocol-select").value,
+                "staSSID": document.getElementById("staSSID-input").value,
+                "staPassword": document.getElementById("staPassword-input").value,
+                "apSSID": document.getElementById("apSSID-input").value,
+                "apPassword": document.getElementById("apPassword-input").value,
+                "apIp": document.getElementById("apIp-input").value,
+            })
+        })
+            .then(response => {
+                console.log("Stored new server config")
+            })
+    }
+
+    async function postServerReset() {
+        console.log("Reset server")
+        await fetch(serverResetUri, {
+            method: "POST"
+        })
+            .then(response => {
+                console.log("Reset server")
+            })
+    }
+
+
+</script>
+</html>
+

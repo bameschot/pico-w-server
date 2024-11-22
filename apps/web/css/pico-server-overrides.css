@@ -1,0 +1,81 @@
+:root {
+    --border-radius: 5px;
+    --border-color: #ababab;
+    --border-style: solid;
+    --padding: 2%
+}
+
+@media (prefers-color-scheme: dark) or (prefers-color-scheme: light) {
+    :root {
+        --bg: #212121;
+        --accent-bg: #2b2b2b;
+        --text: #dcdcdc;
+        --text-light: #ababab;
+        --border: #666;
+        --accent: #ffb300;
+        --accent-light: #ffecb3;
+        --code: #f06292;
+        --preformatted: #ccc;
+        --disabled: #111
+    }
+
+    img, video {
+        opacity: .6
+    }
+}
+
+body {
+    max-width: 75rem;
+}
+
+.body-container {
+    padding-top: 5%;
+}
+
+.error-container {
+    width: 98%;
+    border-radius: var(--border-radius);
+    border-style: var(--border-style);
+    border-color: var(--border-color);
+    display: table;
+    box-sizing: content-box;
+    background-color: #d81b60;
+    padding-right: var(--padding);
+}
+
+.menu-bar {
+    width: 98%;
+    border-radius: var(--border-radius);
+    border-style: var(--border-style);
+    border-color: var(--border-color);
+    display: table;
+    box-sizing: content-box;
+    padding-right: var(--padding);
+}
+
+.menu-bar-item {
+    display: table-cell;
+    vertical-align: middle;
+    box-sizing: content-box;
+    padding-right: 1%;
+    padding-left: 1%;
+}
+
+.state-container {
+    display: table;
+    box-sizing: content-box;
+    width: 100%;
+}
+
+.panel {
+    border-radius: var(--border-radius);
+    border-style: var(--border-style);
+    border-color: var(--border-color);
+    box-sizing: content-box;
+    padding: var(--padding);
+
+}
+
+.debug {
+    background-color: #d81b60;
+}

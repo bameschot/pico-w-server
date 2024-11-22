@@ -1,0 +1,109 @@
+<!doctype html>
+<html>
+<title>Pico W</title>
+
+<head>
+    <link rel="stylesheet" href="/css/simple-css-min.css"/>
+    <link rel="stylesheet" href="/css/pico-server-overrides.css"/>
+    <link rel="stylesheet" href="/pico-threads/css/picothreads.css"/>
+    <script src="/pico-threads/js/picothreads.js"></script>
+    <script src="/js/picoserver-utils.js"></script>
+
+</head>
+
+<body>
+
+<div class="body-container">
+
+    <div id="menu-bar-div" class="menu-bar" style="overflow: hidden;">
+        <div class="menu-bar-item" style="transform: none" id="app-descriptor-div">
+            <div style="font-size: xx-large">Pico Threads</div>
+        </div>
+        <div class="menu-bar-item" id="is-secure-banner-div">
+            <div style="font-size: xx-large; color: darkred">&emsp; not secure</div>
+        </div>
+        <div class="menu-bar-item" style="float: right">
+            <button id="logout-user-button" style="display: none;" onclick="clearUser()">Clear User</button>
+        </div>
+    </div>
+
+    <br/>
+
+    <div id="error-container" class="error-container" style="display: none">
+        <div id="error-msg-item" class="error-msg"></div>
+    </div>
+
+    <br/>
+
+    <div id="clear-user-id-div" class="state-container" style="display: none"></div>
+
+    <div id="landing-page-div" class="state-container" style="display: none">
+
+    </div>
+
+    <div id="set-user-page-div" class="state-container" style="display: none">
+        <div class="panel" style="padding: 1%">
+            <div style="font-size: larger">Please set your user id</div>
+            name:</br><input id="user-name-input" type="text"></br>
+            password:</br><input id="user-seed-input" type="password"></br>
+            <button id="create-user-id-button" onclick="setUser()">Set User</button>
+        </div>
+    </div>
+
+
+    <div id="pico-threads-page-div" class="state-container" style="display: none">
+        <div id="message"></div>
+        <div class="panel" style="float:left; width: 67%; ">
+            <div id="threads-container-div"></div>
+        </div>
+        <div class="panel" style="float:right; padding-left: 1%; width: 24%; font-size: smaller ">
+            Users Online:
+            <div id="online-users-div" style="font-size: smaller"></div>
+        </div>
+    </div>
+
+
+</div>
+</body>
+
+<script>
+    let maxMessageCharacters = parseInt("{{max-message-size}}")
+    let maxThreadSubjectCharacters = parseInt("{{max-subject-size}}")
+    let protocol = "{{protocol}}"
+    let serverAddress = "{{ip}}"
+    let listThreadsIntervalMs = parseInt("{{list-threads-interval-ms}}")
+    let fetchUsersIntervalMs = parseInt("{{fetch-users-interval-ms}}")
+    let tokenRefreshIntervalMs = parseInt("{{token-refresh-interval-ms}}")
+
+    if(serverAddress.includes("{ip}")) {
+        listThreadsIntervalMs = 2500 //10000
+        fetchUsersIntervalMs = 5000 //30000
+        tokenRefreshIntervalMs = 20000
+        maxMessageCharacters = 1024*5 //256
+        maxThreadSubjectCharacters = 512 //64
+        protocol = "http"
+        serverAddress = "192.168.1.129" //"192.168.1.181"//
+    }
+
+    let baseUri = protocol + "://" + serverAddress
+
+    STATES = {
+        LANDING: "landing-page-div",
+        NO_USER_ID: "set-user-page-div",
+        DEFINED_USER_ID: "pico-threads-page-div",
+        CLEAR_USER_ID: "clear-user-id-div",
+    }
+    elements = [STATES.LANDING, STATES.NO_USER_ID, STATES.DEFINED_USER_ID]
+
+    if (!IS_SECURE_MODE)
+        document.getElementById("is-secure-banner-div").style.display = "block"
+
+    setState(STATES.LANDING)
+    landingPage()
+    setInterval(getFetchUsers, fetchUsersIntervalMs)
+    setInterval(listThreads, listThreadsIntervalMs)
+    setInterval(refreshUserToken, tokenRefreshIntervalMs)
+
+</script>
+</html>
+
