@@ -6,12 +6,12 @@ from networking.templateengine import *
 
 class ServerRequest:
     def __init__(self):
-        self.method=method=""
+        self.method=""
         self.path=""
         self.queryParameters={}
         self.pathParameters={}
         self.headers={}
-        self.body=body=""
+        self.body=""
         
 class ServerResponse:
     def __init__(self,awriter:StreamReader):
