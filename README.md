@@ -226,8 +226,42 @@ The way to register the apps in ```main.py```
     userManagement = UserManagementApp(serverRequestHandler,scheduler,ip)
 ```
 
+## Serving static resources and HTML templates
 
+## Webserver Scheduler
 
+The pico-w-server has a buildin scheduler that allows repeating tasks to be executed at a fixed interval or one off tasks after a specific amount of time. The scheduler itself is global to the webserver and executes tasks for the entire webserver, the scheduler is implemented in the ```Scheduler``` class. 
+
+The scheduler works by advancing one tick for every second that passes. Each tasks is then checked agains the number of ticks defined as the task interval / execution delay. If the required number of ticks has elapsed the task is executed. One off tasks are then removed from the Scheduler's task list.
+
+Tasks can be scheduled by creating an object of a subclass of the ```ScheduledTask``` class and adding it to the Scheduler's tasks list by calling the ```schedule``` method of the Scheduler. 
+
+An example of two tasks being created and then added to the scheduler is given below:
+```
+class ToggleLedTask(ScheduledTask):
+    def __init__(self,blinkInterval:int=1):
+        super().__init__("togle-led", 0, blinkInterval ,True)
+        if IS_MICRO_PYTHON:
+            self.led = Pin("LED", Pin.OUT)
+    
+    async def execute(self):
+        if IS_MICRO_PYTHON:
+            self.led.toggle()
+
+class RunGCTask(ScheduledTask):
+    def __init__(self):
+        super().__init__("run-gc", 0, 6, True)
+    
+    async def execute(self):
+        gc.collect()
+        if IS_MICRO_PYTHON:
+            print ('Free memory: '+ str(gc.mem_free()))
+
+#scheduler
+scheduler.schedule(RunGCTask())
+scheduler.schedule(ToggleLedTask(blinkInterval))
+
+```
 
 
   
