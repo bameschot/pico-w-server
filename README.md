@@ -49,7 +49,7 @@ The webserver exposes a webpage that can be used to edit these settings on the u
 
 ## Server runtime environment
 
-The pico-w-server is primarely developed to be run on a microcontroller in a Micropython runtime. However in order to develop more easilly in absence of a microcontroller board or simply to work with a very basic webserver on another platform a environmental setting has been added to allow for the differences between Micropython and standard Python. By setting the ```IS_MICRO_PYTHON``` to True the variable can be used to load or excecute Micropyton/Python specific code. 
+The pico-w-server is primarily developed to be run on a microcontroller in a Micropython runtime. However in order to develop more easilly in absence of a microcontroller board or simply to work with a very basic webserver on another platform a environmental setting has been added to allow for the differences between Micropython and standard Python. By using the ```IS_MICRO_PYTHON``` variable the system can load or excecute Micropyton/Python specific code. 
 
 for example Micropython specific imports can be loaded by adding:
 ```

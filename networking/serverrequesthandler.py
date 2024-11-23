@@ -21,7 +21,7 @@ class ServerResponse:
         self.contentType = "text/html"
         self.disableCORS = True
         self.body=None
-        self.bodyWriter=None #a writer function adhering to (awriter:Stream) -> void
+        self.bodyWriter=None #a BodyWriter object
         
     def commit(self):
         writeHttpFrame(self.awriter,self.statusCode)
@@ -106,7 +106,6 @@ class StaticResourceBodyWriter(BodyWriter):
         self.path=path
     
     def write(self,awriter):
-        
         with open(self.path) as resourceFile:
             for line in resourceFile:
                 write(awriter,line)

@@ -6,6 +6,7 @@ if IS_MICRO_PYTHON:
     
     from networking.wireless import Wireless
 
+import platform
 import time
 import asyncio
 import socket
@@ -46,8 +47,7 @@ class RunGCTask(ScheduledTask):
 
 #Main 
 async def main():
-    log('--------------Starting pico w--------------')
-    
+    log('--------------Starting pico w--------------')    
     
     loadServerConfig()
     
