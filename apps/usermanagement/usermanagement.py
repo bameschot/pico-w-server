@@ -19,15 +19,20 @@ AUTHORIZATION_HEADER_NAME = 'Authorization'
 
 class UserTokenRepository:
     def __init__(self):
-        self.userTokens=None
+        self.userTokens=UserTokens()
     
     def createToken(self,userId:str)->str:
-        userToken = UserToken(uniqueId(64),userId,getCurrenS()+USER_TOKEN_LIFETIME_S)
-        self.userTokens.tokenMap[userToken.token] = userToken
-        
-        self.storeUserTokens()
-        
+        userToken = UserToken(encodeBase64(sha256(randomBytes(256))),userId,getCurrenS()+USER_TOKEN_LIFETIME_S)
+        self.userTokens.tokenMap[userToken.token] = userToken        
         return userToken.token
+    
+    def refreshToken(self,userId:str)->str:
+        oldTokenExpeditedExpS = getCurrenS()+10
+        for token in self.userTokens.tokenMap.values():
+            if(token.userId == userId):
+                token.exp = oldTokenExpeditedExpS
+        
+        return self.createToken(userId)
         
     def validateUserAuthentication(self,token:str)->str:
         currentS = getCurrenS()
@@ -38,7 +43,6 @@ class UserTokenRepository:
                 return userToken.userId
             else:
                 del self.userTokens.tokenMap[token]
-                self.storeUserTokens()
         return None
     
     def deleteUserAuthenticationById(self,userId:str):
@@ -49,22 +53,11 @@ class UserTokenRepository:
         print(str(tokensToRemove))
         for t in tokensToRemove:
             del self.userTokens.tokenMap[t]
-        
-        self.storeUserTokens()
-    
+            
     def deleteUserAuthentication(self,token:str):
         if token in self.userTokens.tokenMap:
             del self.userTokens.tokenMap[token]
         self.storeUserTokens()
-    
-    def loadUserTokens(self):
-        with open(USER_TOKEN_FILE,"r") as f:
-            self.userTokens = UserTokens.fromJson(f.read())
-
-    
-    def storeUserTokens(self):
-        with open(USER_TOKEN_FILE, "w") as f:
-            json.dump(self.userTokens.toJson(),f)
             
     def deleteExpiredTokens(self):
         tokensToRemove = []
@@ -74,12 +67,10 @@ class UserTokenRepository:
                 tokensToRemove.append(token.token)
         print(str(tokensToRemove))
         for t in tokensToRemove:
+            print('removing token: '+t)
             del self.userTokens.tokenMap[t]
         
-        self.storeUserTokens()
-
 USER_TOKEN_REPOSITORY = UserTokenRepository()
-USER_TOKEN_REPOSITORY.loadUserTokens()
 
 def getAuthorizationValueFromHeader(authType:str,headers:dict)->str:
     if not AUTHORIZATION_HEADER_NAME in headers:
@@ -93,7 +84,10 @@ def getAuthorizationValueFromHeader(authType:str,headers:dict)->str:
         
     return splitAutHeaderValue[1]
 
-
+def hashPw(password:str,salt:bytearray=b'@salt-0f-the-3arth!')->str:
+    pwBytes = stringToBytes(password)+salt
+    return encodeBase64(sha256(pwBytes))
+        
 
 class UserRepository:
     def __init__(self):
@@ -102,8 +96,7 @@ class UserRepository:
         
     def identifyUser(self,name:str,pw:str)->str:
         for userId,user in self.userMap.users.items():
-            print(user.userName + " == "+ name +" and "+ user.pw + " = "+pw) 
-            if user.userName == name and user.pw == pw:
+            if user.userName == name and user.pw == hashPw(pw,stringToBytes(name)):
                 return userId
         return None
         
@@ -111,16 +104,16 @@ class UserRepository:
     def registerUser(self,name:str,pw:str)->str:
         for userId,user in self.userMap.users.items():
             if user.userName == name:
-                raise NotAuthorizedException('user with name: '+name+' already registered')
+                raise NotAuthorizedException('Incorrect password or user with name: '+name+' is already registered')
         
-        user = User(uniqueId(),name,pw,getCurrenS())
+        user = User(uniqueId(),name,hashPw(pw,stringToBytes(name)),getCurrenS())
         self.userMap.users[user.userId] = user
         self.saveUsers()
         print('registered user: '+name)
         return user.userId
     
     def refreshToken(self,userId:str)->str:
-        return USER_TOKEN_REPOSITORY.createToken(userId)
+        return USER_TOKEN_REPOSITORY.refreshToken(userId)
         
     def loginUser(self,name:str,pw:str)->str:
         
@@ -194,7 +187,7 @@ USER_REPOSITORY.loadUsers()
             
 class CleanupInactiveUsersTask(ScheduledTask):
     def __init__(self):
-        super().__init__("cleanup-inctive-users", 0, 60, True)
+        super().__init__("cleanup-inctive-users", 0, 30, True)
     
     async def execute(self):
         USER_REPOSITORY.cleanupInactiveUsers()

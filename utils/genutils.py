@@ -1,5 +1,6 @@
 import random
 import binascii
+import hashlib
 
 def mapListToDict(lst:list[str],seperator:str)->dict:
     p = {}
@@ -38,4 +39,6 @@ def randomBytes(sizeBytes:int=32):
 def uniqueId(sizeBytes:int=16)->str:
     return encodeBase64(randomBytes(sizeBytes))
 
-
+def sha256(data:bytearray)->bytearray:
+    digest = hashlib.sha256(data)
+    return digest.digest()

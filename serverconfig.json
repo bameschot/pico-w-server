@@ -1,1 +1,1 @@
-{"preferredConnectionMode": "STA", "protocol": "http", "staSSID": "<sta-ssid>", "staPassword": "<sta-password$>", "apSSID": "pico-w-server", "apPassword": "<ap-password$>", "apIp": "192.168.1.1"}
+{"preferredConnectionMode": "STA", "protocol": "http", "staSSID": "LINK_7632_24Ghz", "staPassword": "Qd7pDnjcd5w!", "apSSID": "pico-w-server", "apPassword": "Qd7pDnjcd2w!", "apIp": "192.168.1.1"}
