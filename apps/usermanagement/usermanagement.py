@@ -172,9 +172,12 @@ class UserRepository:
 
                 
     def loadUsers(self):
-        with open(USER_FILE,"r+") as f:
-            self.userMap = UserMap.fromJson(f.read())
-
+        try:
+            with open(USER_FILE,"r+") as f:
+                self.userMap = UserMap.fromJson(f.read())
+        except:
+            self.userMap = UserMap()
+            self.saveUsers()
 
     def saveUsers(self):
         with open(USER_FILE, "w+") as f:
