@@ -16,12 +16,9 @@ import sys
 
 #from ssl import SSLContext
 from logs.log import *
-from networking.serverrequesthandler import ServerRequestHandler,StaticResouceRequestHandler,CORSPreflightRequestHandler
+from networking.serverrequesthandler import ServerRequestHandler,AnyResouceRequestHandler,CORSPreflightRequestHandler
 from networking.server import Server
 from scheduler.scheduler import Scheduler, ScheduledTask
-from apps.picothreads.picothreads import *
-from apps.serveradmin.serveradmin import *
-from apps.usermanagement.usermanagement import *
 
 from config.serverconfig import *
 
@@ -135,13 +132,9 @@ async def main():
 
 
     #apps
-    picoThreads = PicoThreadsApp(serverRequestHandler,scheduler,ip,serverConfig.protocol)
-    serverAdmin = ServerAdminApp(serverRequestHandler,scheduler,ip,serverConfig.protocol)
-    userManagement = UserManagementApp(serverRequestHandler,scheduler,ip)
-
     
     #shared static resource handler
-    serverRequestHandler.add(StaticResouceRequestHandler("./apps",""))
+    serverRequestHandler.add(AnyResouceRequestHandler("./apps",""))
 
     #scheduler
     scheduler.schedule(RunGCTask())
