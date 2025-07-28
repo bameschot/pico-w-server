@@ -140,8 +140,9 @@ async def main():
     userManagement = UserManagementApp(serverRequestHandler,scheduler,ip)
 
     
-    #shared static resource handler
+    #shared static resource handlers
     serverRequestHandler.add(StaticResouceRequestHandler("./apps",""))
+    serverRequestHandler.add(RawStaticResourceBodyWriter("./apps",""))
 
     #scheduler
     scheduler.schedule(RunGCTask())
