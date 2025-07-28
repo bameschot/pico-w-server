@@ -265,9 +265,9 @@ scheduler.schedule(ToggleLedTask(blinkInterval))
 
 
   
-## Webserver Scheduler
+## Bundled v86 Emulator
 
-The bundled x86 emulator is a compiled version courtesy of: 
+The bundled v86 emulator is a compiled version courtesy of: 
 https://github.com/copy/v86 
 
 licenced as: 
