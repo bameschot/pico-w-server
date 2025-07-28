@@ -110,6 +110,18 @@ class StaticResourceBodyWriter(BodyWriter):
             for line in resourceFile:
                 write(awriter,line)
 
+class RawStaticResourceBodyWriter(BodyWriter):
+    def __init__(self,path):
+        self.path=path
+    
+    def write(self,awriter):
+        with open(self.path,"rb") as resourceFile:
+            byte = resourceFile.read(1024)
+            while byte != b"":
+                writeBytes(awriter,byte)
+                byte = resourceFile.read(1024)
+                
+
 class StaticResouceRequestHandler(RequestHandler):
     def __init__(self,baseDir:str,basePath:str):
         super().__init__("GET",'\/(css|js)\/.*\.(css|js)',baseDir,basePath)
@@ -126,6 +138,26 @@ class StaticResouceRequestHandler(RequestHandler):
         #    serverResponse.body= resourceStream.read()
         
         serverResponse.bodyWriter = StaticResourceBodyWriter(self.transformRequestToResourcePath(serverRequest.path))
+        
+    
+    def transformRequestToResourcePath(self,path:str)->str:
+        if self.basePath == "":
+            return self.baseDir+"/web"+path
+        return self.baseDir+"/web"+path.split(self.basePath)[1]
+
+class AnyResouceRequestHandler(RequestHandler):
+    def __init__(self,baseDir:str,basePath:str):
+        super().__init__("GET",'\/.*\.(.*)',baseDir,basePath)
+     
+    def handle(self,serverRequest:ServerRequest,serverResponse:ServerResponse):
+        #handle the request
+        print("static resource: "+self.transformRequestToResourcePath(serverRequest.path)) 
+        if bool(re.search('.*\.css', serverRequest.path)):
+            serverResponse.contentType = 'text/css'
+        elif bool(re.search('.*\.js', serverRequest.path)):
+            serverResponse.contentType = 'text/javascript'
+        
+        serverResponse.bodyWriter = RawStaticResourceBodyWriter(self.transformRequestToResourcePath(serverRequest.path))
         
     
     def transformRequestToResourcePath(self,path:str)->str:

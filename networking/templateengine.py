@@ -50,3 +50,9 @@ def write(awriter:StreamReader,data:str):
         awriter.write(data)
     else:
         awriter.write(stringToBytes(data))
+
+def writeBytes(awriter:StreamReader,data):
+    if IS_MICRO_PYTHON:
+        awriter.write(data)
+    else:
+        awriter.write(data)

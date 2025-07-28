@@ -6,7 +6,7 @@ def mapListToDict(lst:list[str],seperator:str)->dict:
     p = {}
     for val in lst:
         kv = val.split(seperator)
-        p[kv[0]]=kv[1]
+        p[kv[0]]= kv[1] if len(kv)>1 else None
     return p
 
 def copyDict(d)->dict:
