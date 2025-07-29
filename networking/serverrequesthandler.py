@@ -3,6 +3,7 @@ from asyncio import StreamReader
 
 from exceptions.picoserverexceptions import *
 from networking.templateengine import *
+from utils.compression import uncompressStreamToStream
 
 class ServerRequest:
     def __init__(self):
@@ -120,6 +121,18 @@ class RawStaticResourceBodyWriter(BodyWriter):
             while byte != b"":
                 writeBytes(awriter,byte)
                 byte = resourceFile.read(1024)
+
+class CompressedStaticResourceBodyWriter(BodyWriter):
+    def __init__(self,path):
+        self.path=path
+    
+    def write(self,awriter):
+        with open(f"{self.path}.gz","rb") as resourceFile:
+            compressedStream = uncompressStreamToStream(resourceFile)
+            byte = compressedStream.read(1024)
+            while byte != b"":
+                writeBytes(awriter,byte)
+                byte = compressedStream.read(1024)
                 
 
 class StaticResouceRequestHandler(RequestHandler):
@@ -158,6 +171,26 @@ class AnyResouceRequestHandler(RequestHandler):
             serverResponse.contentType = 'text/javascript'
         
         serverResponse.bodyWriter = RawStaticResourceBodyWriter(self.transformRequestToResourcePath(serverRequest.path))
+        
+    
+    def transformRequestToResourcePath(self,path:str)->str:
+        if self.basePath == "":
+            return self.baseDir+"/web"+path
+        return self.baseDir+"/web"+path.split(self.basePath)[1]
+    
+class CompressedResouceRequestHandler(RequestHandler):
+    def __init__(self,pathMatch:str,baseDir:str,basePath:str):
+        super().__init__("GET",pathMatch,baseDir,basePath)
+     
+    def handle(self,serverRequest:ServerRequest,serverResponse:ServerResponse):
+        #handle the request
+        print("compressed resource: "+self.transformRequestToResourcePath(serverRequest.path)) 
+        if bool(re.search('.*\.css', serverRequest.path)):
+            serverResponse.contentType = 'text/css'
+        elif bool(re.search('.*\.js', serverRequest.path)):
+            serverResponse.contentType = 'text/javascript'
+        
+        serverResponse.bodyWriter = CompressedStaticResourceBodyWriter(self.transformRequestToResourcePath(serverRequest.path))
         
     
     def transformRequestToResourcePath(self,path:str)->str:

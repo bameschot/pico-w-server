@@ -16,7 +16,7 @@ import sys
 
 #from ssl import SSLContext
 from logs.log import *
-from networking.serverrequesthandler import ServerRequestHandler,StaticResouceRequestHandler,CORSPreflightRequestHandler
+from networking.serverrequesthandler import ServerRequestHandler,StaticResouceRequestHandler,CORSPreflightRequestHandler,AnyResouceRequestHandler,CompressedResouceRequestHandler
 from networking.server import Server
 from scheduler.scheduler import Scheduler, ScheduledTask
 from apps.picothreads.picothreads import *
@@ -141,8 +141,9 @@ async def main():
 
     
     #shared static resource handlers
-    serverRequestHandler.add(StaticResouceRequestHandler("./apps",""))
-    serverRequestHandler.add(RawStaticResourceBodyWriter("./apps",""))
+    #serverRequestHandler.add(StaticResouceRequestHandler("./apps",""))
+    serverRequestHandler.add(AnyResouceRequestHandler("./apps",""))
+    #serverRequestHandler.add(CompressedResouceRequestHandler('\/(build|images|bios)\/.*\.(.*)',"./apps",""))
 
     #scheduler
     scheduler.schedule(RunGCTask())
