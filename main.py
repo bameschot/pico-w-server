@@ -16,7 +16,7 @@ import sys
 
 #from ssl import SSLContext
 from logs.log import *
-from networking.serverrequesthandler import ServerRequestHandler,AnyResouceRequestHandler,CORSPreflightRequestHandler
+from networking.serverrequesthandler import ServerRequestHandler,AnyResouceRequestHandler,CORSPreflightRequestHandler,CompressedResouceRequestHandler
 from networking.server import Server
 from scheduler.scheduler import Scheduler, ScheduledTask
 
@@ -134,7 +134,9 @@ async def main():
     #apps
     
     #shared static resource handler
+    serverRequestHandler.add(CompressedResouceRequestHandler('\/(build|images|bios)\/.*\.(.*)',"./apps",""))
     serverRequestHandler.add(AnyResouceRequestHandler("./apps",""))
+
 
     #scheduler
     scheduler.schedule(RunGCTask())
