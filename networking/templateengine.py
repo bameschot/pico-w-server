@@ -57,7 +57,6 @@ def writeBytes(awriter:StreamReader,data):
     if IS_MICRO_PYTHON:
         awriter.write(data)
         awriter.drain()
-        gc.collect()
-        print ('Free memory on write: '+ str(gc.mem_free()))
     else:
         awriter.write(data)
+
