@@ -96,7 +96,7 @@ class Server:
             serverResponse.statusCode = e.statusCode
             serverResponse.body = json.dumps(e.__dict__) #renderTemplate('./apps/web/templates/error.html',{'status-code':e.statusCode,'message':e.message,'details':e.details} )
         except Exception as e:
-            print("Exception: "+str(e))
+            print("Exception handling response: "+str(e))
             ex = InternalServerErrorException(str(e))
             
             if IS_MICRO_PYTHON:
@@ -110,7 +110,15 @@ class Server:
             
         
         #commit the response
-        serverResponse.commit()
+        try:    
+            serverResponse.commit()
+        except Exception as e:
+            print("Exception committing response: "+str(e))
+            if IS_MICRO_PYTHON:
+                sys.print_exception(e)
+            else:
+                traceback.print_exc()
+     
         await awriter.drain()
         #check if needed for micropython too
         awriter.close()
@@ -130,4 +138,3 @@ class Server:
         print("Client disconnected, duration: "+str(duration)+" ms")
         print("---------------------------------------------------")
         
-    
