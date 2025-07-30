@@ -117,10 +117,10 @@ class RawStaticResourceBodyWriter(BodyWriter):
     
     def write(self,awriter):
         with open(self.path,"rb") as resourceFile:
-            byte = resourceFile.read(1024)
+            byte = resourceFile.read(1024*1)
             while byte != b"":
                 writeBytes(awriter,byte)
-                byte = resourceFile.read(1024)
+                byte = resourceFile.read(1024*1)
 
 class CompressedStaticResourceBodyWriter(BodyWriter):
     def __init__(self,path):
@@ -129,10 +129,11 @@ class CompressedStaticResourceBodyWriter(BodyWriter):
     def write(self,awriter):
         with open(f"{self.path}.gz","rb") as resourceFile:
             compressedStream = uncompressStreamToStream(resourceFile)
-            byte = compressedStream.read(1024)
+            byte = compressedStream.read(1024*1)
             while byte != b"":
                 writeBytes(awriter,byte)
-                byte = compressedStream.read(1024)
+                byte = compressedStream.read(1024*1)
+                
                 
 
 class StaticResouceRequestHandler(RequestHandler):
@@ -197,3 +198,4 @@ class CompressedResouceRequestHandler(RequestHandler):
         if self.basePath == "":
             return self.baseDir+"/web"+path
         return self.baseDir+"/web"+path.split(self.basePath)[1]
+
