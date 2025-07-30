@@ -2,6 +2,7 @@ from env.env import *
 
 from asyncio import StreamReader
 from utils.genutils import *
+import gc
 
 HTTP_HEADER_FRAME = 'HTTP/1.0 {{code}}\r\n'
 
@@ -48,11 +49,15 @@ def serveStatic(resourceType:str, resourcePath:str, awriter:StreamReader):
 def write(awriter:StreamReader,data:str):
     if IS_MICRO_PYTHON:
         awriter.write(data)
+        awriter.drain()
     else:
         awriter.write(stringToBytes(data))
 
 def writeBytes(awriter:StreamReader,data):
     if IS_MICRO_PYTHON:
         awriter.write(data)
+        awriter.drain()
+        gc.collect()
+        print ('Free memory on write: '+ str(gc.mem_free()))
     else:
         awriter.write(data)
