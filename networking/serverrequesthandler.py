@@ -7,7 +7,8 @@ from exceptions.picoserverexceptions import *
 from networking.templateengine import *
 from utils.compression import uncompressStreamToStream
 
-WRITE_BUFFER = 512 if IS_MICRO_PYTHON else 1024 * 10
+COMPRESSED_WRITE_BUFFER = 512 if IS_MICRO_PYTHON else 1024 * 100
+RAW_WRITE_BUFFER = 1024 if IS_MICRO_PYTHON else 1024 * 100
 
 class ServerRequest:
     def __init__(self):
@@ -115,8 +116,8 @@ class StaticResourceBodyWriter(BodyWriter):
             for line in resourceFile:
                 write(awriter,line)
 
-def memoryCleaningStreamBasedWrite(awriter,instream):
-    byte = instream.read(WRITE_BUFFER)
+def memoryCleaningStreamBasedWrite(awriter,instream,bufferSize):
+    byte = instream.read(bufferSize)
     startMem = gc.mem_free() if IS_MICRO_PYTHON else 0
     
     while byte != b"":
@@ -124,11 +125,11 @@ def memoryCleaningStreamBasedWrite(awriter,instream):
         del byte
         if IS_MICRO_PYTHON:
             lastMem =  gc.mem_free() if IS_MICRO_PYTHON else 0
-            if lastMem < startMem * 0.95:
+            if lastMem < startMem * 0.75:
                 gc.collect()
                 print ('Free memory on write: '+ str(lastMem))
                         
-        byte = instream.read(WRITE_BUFFER)
+        byte = instream.read(bufferSize)
 
 class RawStaticResourceBodyWriter(BodyWriter):
     def __init__(self,path):
@@ -136,7 +137,7 @@ class RawStaticResourceBodyWriter(BodyWriter):
     
     def write(self,awriter):
         with open(self.path,"rb") as resourceFile:
-            memoryCleaningStreamBasedWrite(awriter, resourceFile)
+            memoryCleaningStreamBasedWrite(awriter, resourceFile, RAW_WRITE_BUFFER)
 #             byte = resourceFile.read(WRITE_BUFFER)
 #             while byte != b"":
 #                 writeBytes(awriter,byte)
@@ -148,7 +149,10 @@ class CompressedStaticResourceBodyWriter(BodyWriter):
     
     def write(self,awriter):
         with open(f"{self.path}.gz","rb") as resourceFile:
-            memoryCleaningStreamBasedWrite(awriter, uncompressStreamToStream(resourceFile))
+            cos = uncompressStreamToStream(resourceFile)
+            memoryCleaningStreamBasedWrite(awriter,cos, COMPRESSED_WRITE_BUFFER)
+            cos.close()
+            
         
 
 class StaticResouceRequestHandler(RequestHandler):
@@ -213,5 +217,4 @@ class CompressedResouceRequestHandler(RequestHandler):
         if self.basePath == "":
             return self.baseDir+"/web"+path
         return self.baseDir+"/web"+path.split(self.basePath)[1]
-
 
